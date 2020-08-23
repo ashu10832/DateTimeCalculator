@@ -167,7 +167,7 @@ public class CalculatorRunner {
 				for (Transaction transaction : transactions) {
 					transaction.execute();
 					sessionManager.addTransaction(transaction);
-					System.out.println(transaction.getOutput());
+					printTransaction(transaction);
 				}
 				break;
 			}
@@ -185,6 +185,16 @@ public class CalculatorRunner {
 
 	}
 	
+	private static void printTransaction(Transaction transaction) {
+		String inputArr[] = transaction.getInput();
+		String input = "";
+		for(int i = 0;i<inputArr.length;i++) {
+			input = input +  inputArr[i] + " ";
+		}
+		System.out.println("Input: " + input + " Operation: " + transaction.getOperation() + " Output: " + transaction.getOutput());
+		
+	}
+
 	private static void printSessions(List<Session> sessions) {
 		for (Session session : sessions) {
 			System.out.println(session.toString());
