@@ -1,0 +1,15 @@
+package com.ashugupta.pjp.constants;
+
+public enum Operation {
+	ADD_DAYS,
+	ADD_WEEKS,
+	ADD_MONTHS,
+	ADD_YEARS,
+	SUBTRACT_DAYS,
+	SUBTRACT_WEEKS,
+	SUBTRACT_MONTHS,
+	SUBTRACT_YEARS,
+	WEEK_OF_YEAR,
+	DAY_OF_WEEK,
+	PHRASE_CONVERT,
+}
