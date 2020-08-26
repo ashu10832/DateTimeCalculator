@@ -1,12 +1,12 @@
 package com.ashugupta.pjp.persistence;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
@@ -35,7 +35,7 @@ public class persistance {
 	
 	@Test
 	public void shouldWriteDataToFile() throws JsonProcessingException {
-		List<Transaction> transactions = new ArrayList<Transaction>();
+		Set<Transaction> transactions = new HashSet<Transaction>();
 		transactions.add(new Transaction(new String[] {"input1","input2"}, Operation.ADD_DAYS, "output"));
 		transactions.add(new Transaction(new String[] {"input1"}, Operation.ADD_DAYS, "output"));
 		

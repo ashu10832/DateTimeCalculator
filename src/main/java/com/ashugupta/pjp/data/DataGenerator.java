@@ -22,7 +22,7 @@ public class DataGenerator {
 		transaction.execute();
 		System.out.println(transaction.getOutput());
 		PersistanceManager persistanceManager = new PersistanceManager();
-		persistanceManager.saveTransactions(generateTransactions(100000));
+		persistanceManager.saveTransactions(generateTransactions(1000));
 	}
 	
 	

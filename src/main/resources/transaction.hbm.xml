@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" 
+"https://hibernate.org/dtd/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping package="com.ashugupta.pjp.models">
+
+	<class name="Transaction" table="transaction">
+		<id name="id" type="int">
+			<column name="id" />
+			<generator class="identity" />
+		</id>
+		<property name="input1" type="string">
+			<column name="input1"></column>
+		</property>
+		<property name="input2" type="string">
+			<column name="input2"></column>
+		</property>
+		<property name="output" type="string">
+			<column name="output"></column>
+		</property>
+		<property name="operation" type="string">
+			<column name="operation"></column>
+		</property>
+		<many-to-one name="session" class="Session">
+			<column name="session_id" not-null="true"></column>
+		</many-to-one>
+	</class>
+
+</hibernate-mapping>

@@ -4,6 +4,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import javax.naming.spi.DirStateFactory.Result;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -22,14 +29,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 public class CalculatorRunner {
-	
+
 	private static Locale locale;
 	private static SessionManager sessionManager;
 
-	public static void main(String[] args) throws JsonParseException, JsonMappingException, IOException, ParseException {
+	public static void main(String[] args)
+			throws JsonParseException, JsonMappingException, IOException, ParseException {
 		int option = 1;
 		locale = new Locale("en");
-		
+
 		sessionManager = new SessionManager();
 
 		DateTimeCalculatorImpl calculator = new DateTimeCalculatorImpl();
@@ -55,21 +63,21 @@ public class CalculatorRunner {
 					duration = inputDuration();
 					output = calculator.addDays(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.ADD_WEEKS);
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.ADD_WEEKS);
 					break;
 				case 2:
 					date = inputDate();
 					duration = inputDuration();
 					output = calculator.addWeeks(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.ADD_WEEKS);
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.ADD_WEEKS);
 					break;
 				case 3:
 					date = inputDate();
 					duration = inputDuration();
 					output = calculator.addMonths(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.ADD_MONTHS);
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.ADD_MONTHS);
 
 					break;
 				case 4:
@@ -77,7 +85,7 @@ public class CalculatorRunner {
 					duration = inputDuration();
 					output = calculator.addYears(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.ADD_YEARS);
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.ADD_YEARS);
 					break;
 				case 0:
 					break;
@@ -95,28 +103,28 @@ public class CalculatorRunner {
 					duration = inputDuration();
 					output = calculator.subtractDays(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.SUBTRACT_DAYS);					
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.SUBTRACT_DAYS);
 					break;
 				case 2:
 					date = inputDate();
 					duration = inputDuration();
 					output = calculator.subtractWeeks(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.SUBTRACT_WEEKS);					
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.SUBTRACT_WEEKS);
 					break;
 				case 3:
 					date = inputDate();
 					duration = inputDuration();
 					output = calculator.subtractMonths(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.SUBTRACT_MONTHS);					
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.SUBTRACT_MONTHS);
 					break;
 				case 4:
 					date = inputDate();
 					duration = inputDuration();
 					output = calculator.subtractYears(parseDate(date), duration).toString();
 					System.out.println(output);
-					addToSession(new String[] {date,Integer.toString(duration)},output,Operation.SUBTRACT_YEARS);					
+					addToSession(new String[] { date, Integer.toString(duration) }, output, Operation.SUBTRACT_YEARS);
 					break;
 				case 0:
 					break;
@@ -127,31 +135,31 @@ public class CalculatorRunner {
 			}
 			case 3: {
 				date = inputDate();
-				output = calculator.getDay( parseDate(date));
+				output = calculator.getDay(parseDate(date));
 				System.out.println(output);
-				addToSession(new String[] {date},output,Operation.DAY_OF_WEEK);					
+				addToSession(new String[] { date }, output, Operation.DAY_OF_WEEK);
 				break;
 			}
 			case 4: {
 				date = inputDate();
 				output = Integer.toString(calculator.getWeekNumber(parseDate(date)));
 				System.out.println(output);
-				addToSession(new String[] {date},output,Operation.WEEK_OF_YEAR);		
+				addToSession(new String[] { date }, output, Operation.WEEK_OF_YEAR);
 				break;
 			}
 			case 5: {
 				String phrase = inputPhrase();
 				output = convertPhrase(phrase).toString();
 				System.out.println(output);
-				addToSession(new String[] {phrase},output,Operation.PHRASE_CONVERT);		
+				addToSession(new String[] { phrase }, output, Operation.PHRASE_CONVERT);
 				break;
 			}
 			case 6: {
 				displayLanguages();
 				int langOpt = inputLanguage();
-				if(langOpt == 1) {
+				if (langOpt == 1) {
 					locale = new Locale("en");
-				}else if(langOpt == 2) {
+				} else if (langOpt == 2) {
 					locale = new Locale("es");
 				}
 				break;
@@ -163,15 +171,46 @@ public class CalculatorRunner {
 			}
 			case 8: {
 				PersistanceManager persistanceManager = new PersistanceManager();
-				List<Transaction> transactions =  persistanceManager.readTransactions();
-				for (Transaction transaction : transactions) {
-					transaction.execute();
-					sessionManager.addTransaction(transaction);
-					printTransaction(transaction);
+				List<Transaction> transactions = persistanceManager.readTransactions();
+				long startTime = System.nanoTime();
+
+
+				// Creates an ExecutorService that use a pool of 10 threads
+				ExecutorService fixedExecutorService = Executors.newFixedThreadPool(5);
+				try {
+					List<Future<String>> results = fixedExecutorService.invokeAll(transactions);
+					long stopTime = System.nanoTime();
+					long finalTime = stopTime - startTime;
+			        long convert = TimeUnit.SECONDS.convert(finalTime, TimeUnit.NANOSECONDS);
+			        for (Transaction transaction : transactions) {
+			        	transaction.setSession(sessionManager.getSession());
+			        	sessionManager.addTransaction(transaction);
+			        	printTransaction(transaction);	
+					}
+					System.out.println(finalTime);
+			        System.out.println(convert);
+
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
+//				for (Transaction transaction : transactions) {
+//					transaction.execute();
+//					// sessionManager.addTransaction(transaction);
+//					// printTransaction(transaction);
+//				}
+//				long stopTime = System.nanoTime();
+//				long finalTime = stopTime - startTime;
+//				long convert = TimeUnit.SECONDS.convert(finalTime, TimeUnit.NANOSECONDS);
+//				for (Transaction transaction : transactions) {
+//					printTransaction(transaction);
+//				}
+//				System.out.println(finalTime);
+//				System.out.println(convert);
+
 				break;
 			}
-			case 0:{
+			case 0: {
 				try {
 					sessionManager.persistToStorage();
 				} catch (JsonProcessingException e) {
@@ -184,27 +223,27 @@ public class CalculatorRunner {
 		}
 
 	}
-	
+
 	private static void printTransaction(Transaction transaction) {
-		String inputArr[] = transaction.getInput();
+		List<String> inputArr = transaction.getInput();
 		String input = "";
-		for(int i = 0;i<inputArr.length;i++) {
-			input = input +  inputArr[i] + " ";
+		for (int i = 0; i < inputArr.size(); i++) {
+			input = input + inputArr.get(i) + " ";
 		}
-		System.out.println("Input: " + input + " Operation: " + transaction.getOperation() + " Output: " + transaction.getOutput());
-		
+		System.out.println("Input: " + input + " Operation: " + transaction.getOperation() + " Output: "
+				+ transaction.getOutput());
+
 	}
 
 	private static void printSessions(List<Session> sessions) {
 		for (Session session : sessions) {
 			System.out.println(session.toString());
 		}
-		
-		
+
 	}
 
-	private static void addToSession(String [] input, String output, Operation operation) {
-		sessionManager.addTransaction(new Transaction(input,operation,output));
+	private static void addToSession(String[] input, String output, Operation operation) {
+		sessionManager.addTransaction(new Transaction(List.of(input), operation, output));
 	}
 
 	private static void displayMainMenu() {
@@ -227,12 +266,12 @@ public class CalculatorRunner {
 		System.out.println("3. Month");
 		System.out.println("4. Year");
 	}
-	
+
 	private static void displayLanguages() {
 		System.out.println("1. English");
 		System.out.println("2. Spanish");
 	}
-	
+
 	private static int inputLanguage() {
 		Scanner sc = new Scanner(System.in);
 		System.out.println("Choose Language: ");
