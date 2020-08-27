@@ -34,6 +34,8 @@ public class Session implements Serializable {
 	@OneToMany(mappedBy="session")
 	@JsonProperty("transactions")
 	Set<Transaction> transactions;
+	
+	
 
 	public Session(Set<Transaction> transactions) {
 		super();
