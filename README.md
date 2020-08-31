@@ -26,3 +26,8 @@ hoy means today in Spanish
 
 ### Postgres
 ![Postgres](images/postgres.png)
+
+### JSP and Servlets
+![servlet_1](images/servlet_1.png)
+
+![servlet_2](images/servlet_2.png)
