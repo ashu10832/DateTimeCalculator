@@ -38,6 +38,10 @@ public interface DateTimeCalculator {
 	public String subtractMonths(String date, int months);
 	
 	public String subtractYears(String date, int years);
+
+	public String addMonths(String date, int duration);
+
+	public String addYears(String date, int duration);
 	
 	
 	

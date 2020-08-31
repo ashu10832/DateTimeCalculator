@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.ashugupta.pjp.calculator.DateTimeCalculatorImplTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.305 s - in com.ashugupta.pjp.calculator.DateTimeCalculatorImplTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.241 s - in com.ashugupta.pjp.calculator.DateTimeCalculatorImplTest
